@@ -1,46 +1,48 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090909"><title>¡JA JA JA! 🦍</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f9fc">
+<title>Wi-Fi Free | Acceso de invitados</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#090909;color:white;font-family:system-ui,Arial,sans-serif}main{min-height:100dvh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}img{width:100%;height:100dvh;object-fit:contain;display:block}button{position:absolute;bottom:max(20px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:rgba(0,0,0,.76);color:white;border:2px solid #fff;border-radius:30px;padding:13px 22px;font-size:17px;font-weight:700;white-space:nowrap;cursor:pointer}button:active{transform:translateX(-50%) scale(.97)}
-</style></head>
-<body><main><img src="gorila.png" alt="Gorila riéndose y haciendo una broma"><button id="laugh" type="button">🔊 ¡Escucha la risa!</button></main>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}body{background:#f6f9fc;color:#172235}.screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}.panel{width:min(100%,410px);background:white;border:1px solid #e7ecf2;border-radius:24px;box-shadow:0 15px 45px #20304512;padding:38px 26px;text-align:center}.wifi-icon{width:76px;height:76px;display:grid;place-items:center;margin:0 auto 22px;border-radius:22px;background:#e8f8ee;color:#148346;font-size:40px}.panel h1{font-size:29px;margin:0 0 8px}.panel p{color:#667387;line-height:1.5;margin:0 0 30px}.connect{width:100%;border:0;background:#178b4e;color:#fff;padding:18px 16px;font-weight:750;font-size:18px;border-radius:15px;cursor:pointer;box-shadow:0 6px 15px #178b4e30}.connect:active{transform:scale(.98)}.note{display:block;margin-top:18px;color:#8894a5;font-size:12px}.surprise{display:none;position:fixed;inset:0;background:#070707;align-items:center;justify-content:center}.surprise.active{display:flex}.surprise img{display:block;width:100%;height:100%;object-fit:contain}.again{position:absolute;bottom:max(20px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#101010d9;border:1px solid #fff;color:#fff;padding:12px 20px;border-radius:999px;font-size:16px;font-weight:700;white-space:nowrap;cursor:pointer}.again[hidden]{display:none}
+</style>
+</head>
+<body>
+<section class="screen" id="welcome">
+ <div class="panel">
+  <div class="wifi-icon" aria-hidden="true">⌁</div>
+  <h1>Wi-Fi Free</h1>
+  <p>Acceso gratuito para invitados.<br>Presiona el botón para continuar.</p>
+  <button class="connect" id="connect" type="button">Conectarse gratis</button>
+  <small class="note">Acceso para visitantes</small>
+ </div>
+</section>
+<section class="surprise" id="surprise" aria-hidden="true">
+ <img src="gorila.png" alt="Gorila riéndose">
+ <button class="again" id="again" type="button" hidden>🔊 Repetir risa</button>
+</section>
+<audio id="laugh" src="Risa.mp3" preload="auto" playsinline></audio>
 <script>
-(()=>{
-let context,playing=false;
-const button=document.getElementById('laugh');
-function laugh(){
-  if(playing)return;
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC){button.textContent='🔇 Audio no disponible';return;}
-  try{
-    context=context||new AC();context.resume();playing=true;
-    button.textContent='🦍 ¡JA JA JA!';
-    const start=context.currentTime+.03;
-    // Carcajada gutural sintética: pulsos con tono grave, rugosidad y aire.
-    const syllables=[0,.24,.48,.77,1.02,1.31,1.56,1.89,2.16,2.47,2.73,3.02];
-    syllables.forEach((offset,i)=>{
-      const t=start+offset,d=.17+(i%3)*.028;
-      const gain=context.createGain();gain.gain.setValueAtTime(.0001,t);
-      gain.gain.exponentialRampToValueAtTime(.19+(i%3)*.035,t+.028);
-      gain.gain.exponentialRampToValueAtTime(.0001,t+d);
-      gain.connect(context.destination);
-      [0,1,2].forEach((h)=>{
-        const osc=context.createOscillator();osc.type=h===0?'sawtooth':'triangle';
-        const base=(83+(i%4)*9)*(h+1);
-        osc.frequency.setValueAtTime(base,t);
-        osc.frequency.exponentialRampToValueAtTime(base*.69,t+d);
-        const hg=context.createGain();hg.gain.value=[.45,.21,.08][h];
-        osc.connect(hg).connect(gain);osc.start(t);osc.stop(t+d+.015);
-      });
-    });
-    window.setTimeout(()=>{playing=false;button.textContent='🔊 Repetir carcajada';},3700);
-  }catch(e){playing=false;button.textContent='🔊 Toca para escuchar';}
-}
-button.addEventListener('click',laugh);
-// Algunos navegadores permiten sonido al abrir; otros requieren interacción.
-window.addEventListener('load',()=>{laugh();},{once:true});
-})();
-</script></body></html>
+const connect=document.getElementById('connect');
+const welcome=document.getElementById('welcome');
+const surprise=document.getElementById('surprise');
+const audio=document.getElementById('laugh');
+const again=document.getElementById('again');
+connect.addEventListener('click',()=>{
+ welcome.style.display='none';
+ surprise.classList.add('active');surprise.setAttribute('aria-hidden','false');
+ again.hidden=false;
+ audio.currentTime=0;
+ const result=audio.play();
+ if(result && typeof result.catch==='function')result.catch(()=>{again.textContent='🔊 Toca para escuchar';});
+});
+again.addEventListener('click',()=>{
+ audio.pause();audio.currentTime=0;
+ const result=audio.play();
+ if(result && typeof result.catch==='function')result.catch(()=>{again.textContent='🔊 Toca para escuchar';});
+});
+</script>
+</body>
+</html>
